@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+﻿import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -17,8 +17,8 @@ android {
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 200
-        versionName = "2.0.0"
+        versionCode = 201
+        versionName = "2.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -32,7 +32,7 @@ android {
         viewBinding = true
     }
 
-    // подпись тем же ключом, что и прежний Pulse.apk: тогда новая версия встаёт поверх старой
+    // РїРѕРґРїРёСЃСЊ С‚РµРј Р¶Рµ РєР»СЋС‡РѕРј, С‡С‚Рѕ Рё РїСЂРµР¶РЅРёР№ Pulse.apk: С‚РѕРіРґР° РЅРѕРІР°СЏ РІРµСЂСЃРёСЏ РІСЃС‚Р°С‘С‚ РїРѕРІРµСЂС… СЃС‚Р°СЂРѕР№
     signingConfigs {
         create("pulse") {
             storeFile = file(System.getenv("PULSE_KEYSTORE") ?: "pulse.keystore")

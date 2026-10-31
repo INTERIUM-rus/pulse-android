@@ -3,6 +3,7 @@ package io.github.romanvht.byedpi.activities
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +11,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -237,6 +239,25 @@ class PulseActivity : Activity() {
 
         @JavascriptInterface fun openBypassSettings() {
             main.post { startActivity(Intent(this@PulseActivity, SettingsActivity::class.java)) }
+        }
+
+        // скачивание треков со свободной лицензией в «Музыка/Pulse» (только Архив интернета и ccMixter)
+        @JavascriptInterface fun download(url: String, name: String) {
+            val u = Uri.parse(url)
+            val host = u.host ?: return
+            if (u.scheme != "https" || listOf("archive.org", "ccmixter.org").none { host == it || host.endsWith(".$it") }) return
+            val file = name.replace(Regex("[\\\\/:*?\"<>|]+"), "_").take(120).ifBlank { "track.mp3" }
+            main.post {
+                try {
+                    val req = DownloadManager.Request(u)
+                        .setTitle(file)
+                        .setDescription("Pulse")
+                        .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    try { req.setDestinationInExternalPublicDir(Environment.DIRECTORY_MUSIC, "Pulse/$file") }
+                    catch (_: Exception) { req.setDestinationInExternalFilesDir(this@PulseActivity, Environment.DIRECTORY_MUSIC, file) }
+                    (getSystemService(DOWNLOAD_SERVICE) as DownloadManager).enqueue(req)
+                } catch (_: Exception) { openOutside(u) }
+            }
         }
 
         @JavascriptInterface fun version(): String =
