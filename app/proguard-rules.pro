@@ -32,3 +32,6 @@
 -adaptclassstrings
 -adaptresourcefilecontents **.xml,**.json
 -adaptresourcefilenames **.xml,**.json
+# Pulse: методы моста для страницы вызываются из JavaScript
+-keepclassmembers class io.github.romanvht.byedpi.activities.PulseActivity$Bridge { @android.webkit.JavascriptInterface <methods>; }
+-keepattributes JavascriptInterface

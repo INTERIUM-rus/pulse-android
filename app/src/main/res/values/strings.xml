@@ -1,6 +1,6 @@
 <resources>
     <string name="byedpi_docs">https://github.com/hufrea/byedpi/blob/main/README.md</string>
-    <string name="app_name">ByeByeDPI</string>
+    <string name="app_name">Pulse</string>
     <string name="cmd_documentation">Документация ByeDPI</string>
     <string name="toggle_connect">Вкл/Выкл</string>
     <string name="vpn_connect">Подключить</string>
@@ -61,9 +61,9 @@
     <string name="failed_to_start">Не удалось запустить %1$s</string>
     <string name="vpn_channel_name">VPN</string>
     <string name="proxy_channel_name">Прокси</string>
-    <string name="notification_title">ByeByeDPI</string>
+    <string name="notification_title">Pulse</string>
     <string name="vpn_notification_content">VPN работает</string>
-    <string name="proxy_notification_content">Прокси работает</string>
+    <string name="proxy_notification_content">Ускорение YouTube включено</string>
     <string name="general_category">Общие</string>
     <string name="byedpi_category">ByeDPI</string>
     <string name="about_category">О программе</string>

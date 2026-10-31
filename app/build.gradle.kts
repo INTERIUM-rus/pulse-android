@@ -13,12 +13,12 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.github.romanvht.byedpi"
+        applicationId = "io.github.interium_rus.pulse"
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 1820
-        versionName = "1.8.2"
+        versionCode = 200
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -32,8 +32,19 @@ android {
         viewBinding = true
     }
 
+    // подпись тем же ключом, что и прежний Pulse.apk: тогда новая версия встаёт поверх старой
+    signingConfigs {
+        create("pulse") {
+            storeFile = file(System.getenv("PULSE_KEYSTORE") ?: "pulse.keystore")
+            storePassword = System.getenv("PULSE_STORE_PASS")
+            keyAlias = System.getenv("PULSE_KEY_ALIAS")
+            keyPassword = System.getenv("PULSE_KEY_PASS")
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("pulse")
             buildConfigField("String", "VERSION_NAME",  "\"${defaultConfig.versionName}\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             isMinifyEnabled = true
@@ -89,6 +100,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("com.google.android.material:material:1.13.0")
     implementation("com.google.code.gson:gson:2.14.0")
+    implementation("androidx.webkit:webkit:1.12.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
