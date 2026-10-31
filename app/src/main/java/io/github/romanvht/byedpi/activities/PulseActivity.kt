@@ -252,11 +252,11 @@ class PulseActivity : Activity() {
             main.post { startActivity(Intent(this@PulseActivity, SettingsActivity::class.java)) }
         }
 
-        // скачивание треков со свободной лицензией в «Музыка/Pulse» (только Архив интернета и ccMixter)
+        // скачивание треков со свободной лицензией в «Музыка/Pulse» (только Архив интернета, ccMixter и Jamendo)
         @JavascriptInterface fun download(url: String, name: String) {
             val u = Uri.parse(url)
             val host = u.host ?: return
-            if (u.scheme != "https" || listOf("archive.org", "ccmixter.org").none { host == it || host.endsWith(".$it") }) return
+            if (u.scheme != "https" || listOf("archive.org", "ccmixter.org", "jamendo.com").none { host == it || host.endsWith(".$it") }) return
             val file = name.replace(Regex("[\\\\/:*?\"<>|]+"), "_").take(120).ifBlank { "track.mp3" }
             main.post {
                 try {
