@@ -12,6 +12,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.speech.RecognizerIntent
+import org.json.JSONObject
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -41,6 +43,7 @@ class PulseActivity : Activity() {
         private const val PROXY_PORT = 1080
         private const val REQ_FILE = 41
         private const val REQ_MIC = 42
+        private const val REQ_VOICE = 43
     }
 
     private lateinit var web: WebView
@@ -210,6 +213,14 @@ class PulseActivity : Activity() {
             fileCallback?.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data))
             fileCallback = null
         }
+        if (requestCode == REQ_VOICE) {
+            voiceResult(if (resultCode == RESULT_OK) data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull() else null)
+        }
+    }
+
+    private fun voiceResult(text: String?) {
+        val arg = if (text == null) "null" else JSONObject.quote(text)
+        web.evaluateJavascript("window.pulseVoice && window.pulseVoice($arg)", null)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -257,6 +268,18 @@ class PulseActivity : Activity() {
                     catch (_: Exception) { req.setDestinationInExternalFilesDir(this@PulseActivity, Environment.DIRECTORY_MUSIC, file) }
                     (getSystemService(DOWNLOAD_SERVICE) as DownloadManager).enqueue(req)
                 } catch (_: Exception) { openOutside(u) }
+            }
+        }
+
+        // голосовая команда: системный голосовой ввод, текст возвращается в window.pulseVoice
+        @JavascriptInterface fun listen() {
+            main.post {
+                val i = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                    .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                    .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "ru-RU")
+                    .putExtra(RecognizerIntent.EXTRA_PROMPT, "Скажи команду для Pulse")
+                try { startActivityForResult(i, REQ_VOICE) }
+                catch (_: Exception) { web.evaluateJavascript("window.pulseVoiceFail && window.pulseVoiceFail()", null) }
             }
         }
 
