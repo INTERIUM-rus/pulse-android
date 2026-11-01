@@ -13,6 +13,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.speech.RecognizerIntent
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import java.util.Locale
 import org.json.JSONObject
 import android.os.Handler
 import android.os.Looper
@@ -51,6 +54,8 @@ class PulseActivity : Activity() {
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var pendingMic: PermissionRequest? = null
     private var fullView: View? = null
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
 
@@ -149,6 +154,7 @@ class PulseActivity : Activity() {
 
     override fun onDestroy() {
         if (isFinishing) ServiceManager.stop()
+        tts?.shutdown()
         web.destroy()
         super.onDestroy()
     }
@@ -218,6 +224,10 @@ class PulseActivity : Activity() {
         }
     }
 
+    private fun sayNow(text: String) { tts?.speak(text.take(600), TextToSpeech.QUEUE_FLUSH, null, "vibe") }
+
+    private fun speechEnd() { web.evaluateJavascript("window.pulseSpeechEnd && window.pulseSpeechEnd()", null) }
+
     private fun voiceResult(text: String?) {
         val arg = if (text == null) "null" else JSONObject.quote(text)
         web.evaluateJavascript("window.pulseVoice && window.pulseVoice($arg)", null)
@@ -282,6 +292,30 @@ class PulseActivity : Activity() {
                 catch (_: Exception) { web.evaluateJavascript("window.pulseVoiceFail && window.pulseVoiceFail()", null) }
             }
         }
+
+        // голос Вайба: синтез речи телефона; когда договорил — window.pulseSpeechEnd()
+        @JavascriptInterface fun speak(text: String) {
+            main.post {
+                val t = tts
+                if (t == null) {
+                    tts = TextToSpeech(this@PulseActivity) { st ->
+                        ttsReady = st == TextToSpeech.SUCCESS
+                        if (ttsReady) {
+                            tts?.language = Locale("ru", "RU")
+                            tts?.setPitch(1.2f)
+                            tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                                override fun onStart(id: String?) {}
+                                override fun onDone(id: String?) { main.post { speechEnd() } }
+                                @Deprecated("Deprecated in Java") override fun onError(id: String?) { main.post { speechEnd() } }
+                            })
+                            sayNow(text)
+                        } else speechEnd()
+                    }
+                } else if (ttsReady) sayNow(text) else speechEnd()
+            }
+        }
+
+        @JavascriptInterface fun stopSpeak() { main.post { tts?.stop(); speechEnd() } }
 
         @JavascriptInterface fun version(): String =
             try { packageManager.getPackageInfo(packageName, 0).versionName ?: "" } catch (_: Exception) { "" }
